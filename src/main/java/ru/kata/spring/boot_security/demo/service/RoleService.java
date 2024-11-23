@@ -21,4 +21,5 @@ public class RoleService {
     public List<Role> findAll() {
         return roleRepository.findAll();
     }
+    //джангалбек
 }
