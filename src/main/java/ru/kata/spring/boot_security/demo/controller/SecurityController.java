@@ -2,6 +2,7 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Set;
 
@@ -29,29 +31,30 @@ public class SecurityController {
 
     @GetMapping("/user")
     public String userPage(Model model, @AuthenticationPrincipal User user1) {
-        User user = userService.findUserById(user1.getId());
-        model.addAttribute("user", user);
+        model.addAttribute("currentUser", userService.findUserById(user1.getId()));
         return "user";
     }
 
     @GetMapping("/admin")
-    public String getAllUsers(Model model) {
+    public String getAllUsers(Model model, @AuthenticationPrincipal UserDetails currentUser) {
+        model.addAttribute("currentUser", currentUser);
         model.addAttribute("users", userService.allUsers());
+        model.addAttribute("roles", roleService.findAll());
+        model.addAttribute("newUser", new User());
         return "/admin";
     }
 
     @GetMapping("/get")
     public String getUserById(@RequestParam("id") Long id, Model model) {
         model.addAttribute("user", userService.findUserById(id));
-        return "userInfo";
+        return "/admin";
     }
 
     @GetMapping("/save")
     public String saveUser(Model model) {
         model.addAttribute("user", new User());
-        List<Role> allRoles = roleService.findAll();
-        model.addAttribute("allRoles", allRoles);
-        return "/saveUser";
+        model.addAttribute("allRoles", roleService.findAll());
+        return "/admin";
     }
 
     @PostMapping("/createUser")
@@ -63,9 +66,8 @@ public class SecurityController {
     @GetMapping("/edit")
     public String editUser(@RequestParam("id") Long id, Model model) {
         model.addAttribute("user", userService.findUserById(id));
-        List<Role> allRoles = roleService.findAll();
-        model.addAttribute("roles", allRoles);
-        return "/edit";
+        model.addAttribute("roles", roleService.findAll());
+        return "/admin";
     }
 
     @PostMapping("/update")
